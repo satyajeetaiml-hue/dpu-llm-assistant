@@ -1,0 +1,44 @@
+# Azure DevOps pipeline: build & push backend and frontend container images.
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  containerRegistry: "<your-acr>.azurecr.io"
+  backendImage: "university-ai-backend"
+  frontendImage: "university-ai-frontend"
+  tag: "$(Build.BuildId)"
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Backend
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: "acr-service-connection"
+              repository: "$(backendImage)"
+              command: "buildAndPush"
+              Dockerfile: "backend/Dockerfile"
+              buildContext: "backend"
+              tags: |
+                $(tag)
+                latest
+
+      - job: Frontend
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: "acr-service-connection"
+              repository: "$(frontendImage)"
+              command: "buildAndPush"
+              Dockerfile: "frontend/Dockerfile"
+              buildContext: "frontend"
+              tags: |
+                $(tag)
+                latest
